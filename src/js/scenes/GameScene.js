@@ -129,18 +129,8 @@ class GameScene extends Phaser.Scene {
   _handleClick(px, py) {
     if (this._isGameOver) return;
 
-    // 建造菜单打开时只响应菜单按钮
-    if (this.buildMenuVisible) {
-      for (const item of this.buildMenuItems) {
-        if (item._hitBox && px >= item._hitBox.x && px <= item._hitBox.x + item._hitBox.w &&
-            py >= item._hitBox.y && py <= item._hitBox.y + item._hitBox.h) {
-          if (item._towerKey === '__close__') { this._hideBuildMenu(); return; }
-          this._buildTower(item._towerKey);
-          return;
-        }
-      }
-      return; // 点击菜单外不做任何事
-    }
+    // 建造菜单打开时，Zone 自带的 pointerdown 会处理点击
+    if (this.buildMenuVisible) return;
 
     // 检查点击六边形
     const dx = px - ARENA_POSITIONS.PLAYER.x;
@@ -150,7 +140,6 @@ class GameScene extends Phaser.Scene {
     const cell = this.playerGrid.getCellAtPixel(px, py);
     if (!cell || !cell.buildable || cell.occupied) return;
 
-    // 准备期间/平静期可以造塔（不限制）
     this._showBuildMenu(cell);
   }
 
@@ -172,26 +161,29 @@ class GameScene extends Phaser.Scene {
 
     // 背景
     this.buildMenu.fillStyle(0x333333, 0.9);
-    this.buildMenu.fillRoundedRect(menuX - 95, menuY - 5, 190, 95, 6);
+    this.buildMenu.fillRoundedRect(menuX - 95, menuY - 5, 190, 100, 6);
 
     types.forEach((t, i) => {
-      const ty = menuY + 12 + i * 26;
+      const ty = menuY + 15 + i * 28;
+      // 用 Phaser 原生交互 Zone + 文字
+      const zone = this.add.zone(menuX, ty, 176, 24).setInteractive({ useHandCursor: true });
+      zone._towerKey = t.key;
+      zone.on('pointerdown', () => { this._buildTower(t.key); });
       const txt = this.add.text(menuX, ty, `${t.label}`, {
         fontSize: '13px', color: '#ffffff',
       }).setOrigin(0.5);
-      txt._towerKey = t.key;
-      txt._hitBox = { x: menuX - 88, y: ty - 10, w: 176, h: 22 };
-      this.buildMenuItems.push(txt);
+      this.buildMenuItems.push(zone, txt);
     });
 
     // 关闭按钮
-    const closeY = menuY + 12 + 3 * 26 + 4;
+    const closeY = menuY + 15 + 3 * 28 + 2;
+    const closeZone = this.add.zone(menuX, closeY, 80, 20).setInteractive({ useHandCursor: true });
+    closeZone._towerKey = '__close__';
+    closeZone.on('pointerdown', () => { this._hideBuildMenu(); });
     const closeTxt = this.add.text(menuX, closeY, '[ 关闭 ]', {
       fontSize: '11px', color: '#aaaaaa',
     }).setOrigin(0.5);
-    closeTxt._towerKey = '__close__';
-    closeTxt._hitBox = { x: menuX - 40, y: closeY - 8, w: 80, h: 18 };
-    this.buildMenuItems.push(closeTxt);
+    this.buildMenuItems.push(closeZone, closeTxt);
   }
 
   _buildTower(towerKey) {
@@ -213,7 +205,7 @@ class GameScene extends Phaser.Scene {
   _hideBuildMenu() {
     this.buildMenuVisible = false;
     this.buildMenu.clear();
-    this.buildMenuItems.forEach(t => t.destroy());
+    this.buildMenuItems.forEach(t => { if (t && t.destroy) t.destroy(); });
     this.buildMenuItems = [];
   }
 
