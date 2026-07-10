@@ -50,9 +50,13 @@ class Monster {
           const dead = nearestTower.takeDamage(this.config.damageTower);
           if (dead) {
             const arr = forPlayer ? this.scene.playerTowers : this.scene.aiController.towers;
+            const grid = forPlayer ? this.scene.playerGrid : this.scene.aiGrid;
             if (arr) {
               const idx = arr.indexOf(nearestTower);
               if (idx >= 0) arr.splice(idx, 1);
+              // 释放格位
+              const cell = grid.getCellAtPixel(nearestTower.x, nearestTower.y);
+              if (cell) { cell.occupied = false; grid.render(); }
             }
           }
         }
