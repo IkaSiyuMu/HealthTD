@@ -185,6 +185,7 @@
   },
   "active": "933600c1fcba0f1c",
   "lastOpenFiles": [
+    "src/js/config.js.tmp.63260.ba091f667b80",
     "docs/specs/2026-07-10-combat-balance.md.tmp.63260.524acc270cc1",
     "docs/specs/2026-07-10-combat-balance.md.tmp.63260.9e0920082e08",
     "docs/specs/2026-07-10-combat-balance.md.tmp.63260.652399cf676b",
@@ -195,7 +196,6 @@
     "src/js/entities/Monster.js.tmp.63260.0524e2205280",
     "src/js/entities/Monster.js.tmp.63260.498bc6498386",
     "docs/specs/2026-07-10-combat-balance.md.tmp.63260.72283fe35891",
-    "src/js/scenes/GameScene.js.tmp.63260.fa6077683d86",
     "docs/superpowers/plans/2026-07-10-mvp-implementation.md",
     "docs/specs/2026-07-10-combat-balance.md",
     "README.md"
