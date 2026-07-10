@@ -64,6 +64,11 @@ class GameScene extends Phaser.Scene {
     // 点击输入
     this.input.on('pointerdown', (pointer) => this._handleClick(pointer.x, pointer.y));
 
+    // 说明按钮
+    this._helpVisible = false;
+    this._helpObjects = [];
+    this._createHelpButton();
+
     // === 开局准备倒计时 ===
     this._startPrepTime();
   }
@@ -134,6 +139,7 @@ class GameScene extends Phaser.Scene {
 
   _handleClick(px, py) {
     if (this._isGameOver) return;
+    if (this._helpVisible) return;
 
     // 建造菜单打开时，Zone 自带的 pointerdown 会处理点击
     if (this.buildMenuVisible) return;
@@ -374,5 +380,146 @@ class GameScene extends Phaser.Scene {
     const dP = Math.abs(x - ARENA_POSITIONS.PLAYER.x);
     const dA = Math.abs(x - ARENA_POSITIONS.AI.x);
     return dP < dA ? 'player' : 'ai';
+  }
+
+  // ========== 说明面板 ==========
+
+  _createHelpButton() {
+    const btn = this.add.text(GAME_WIDTH - 20, 20, '❓', {
+      fontSize: '22px',
+    }).setOrigin(1, 0).setInteractive({ useHandCursor: true }).setDepth(10);
+    btn.on('pointerdown', () => this._toggleHelp());
+  }
+
+  _toggleHelp() {
+    this._helpVisible = !this._helpVisible;
+    if (this._helpVisible) this._showHelp();
+    else this._hideHelp();
+  }
+
+  _showHelp() {
+    this._hideHelp();
+
+    const ox = 60, oy = 50, w = 1080, h = 580;
+    const bg = this.add.graphics().setDepth(20);
+    bg.fillStyle(0x1a1a2e, 0.92);
+    bg.fillRoundedRect(ox, oy, w, h, 10);
+    this._helpObjects.push(bg);
+
+    const title = this.add.text(ox + 20, oy + 10, '📖 游戏说明', {
+      fontSize: '22px', color: '#ffffff', fontStyle: 'bold',
+    }).setDepth(21);
+    this._helpObjects.push(title);
+
+    // 关闭按钮
+    const closeBtn = this.add.text(ox + w - 25, oy + 10, '✕', {
+      fontSize: '20px', color: '#ff8888',
+    }).setOrigin(1, 0).setInteractive({ useHandCursor: true }).setDepth(21);
+    closeBtn.on('pointerdown', () => this._toggleHelp());
+    this._helpObjects.push(closeBtn);
+
+    // === 各区域说明 ===
+    let y = oy + 50;
+    const col1 = ox + 20, col2 = ox + 370, col3 = ox + 740;
+    const section = (cx, label, color, lines) => {
+      const l = this.add.text(cx, y, label, {
+        fontSize: '16px', color: color, fontStyle: 'bold',
+      }).setDepth(21);
+      this._helpObjects.push(l);
+      lines.forEach((text, i) => {
+        const t = this.add.text(cx + 10, y + 22 + i * 20, text, {
+          fontSize: '13px', color: '#cccccc', wordWrap: { width: 310 },
+        }).setDepth(21);
+        this._helpObjects.push(t);
+      });
+      this._helpObjects.push(this.add.text(cx, y + 22 + lines.length * 20, '', { fontSize: '10px' }).setDepth(21));
+    };
+
+    // 列1: 地形
+    section(col1, '🟦🟩🟪 地形区域', '#88ccff', [
+      '🟦 膜缘区（蓝）→ 塔射程 +25%',
+      '🟩 细胞质区（绿）→ 塔攻速 +15%',
+      '🟪 核周区（紫）→ 塔伤害 +30%',
+      '✨ 金色格子 = 线粒体',
+      '   放塔击杀怪物额外 +2 ATP',
+    ]);
+    y += 170;
+
+    // 列2: 塔类型
+    section(col1, '🏗️ 防御塔', '#44dd88', [
+      '🧫 巨噬细胞 (近战)  100 ATP',
+      '   接触吞噬定身 + 击退',
+      '',
+      '🔬 B细胞 (远程)  150 ATP',
+      '   发射 Y 形抗体弹体',
+      '',
+      '🧬 补体系统 (AOE)  250 ATP',
+      '   范围持续伤害，克制群怪',
+    ]);
+    y += 120;
+
+    // 怪物
+    section(col1, '👾 病原体', '#ff8866', [
+      '🟡 葡萄球菌 — 基础步兵',
+      '🟢 链球菌 — 快速，威胁核',
+      '🟣 噬菌体 — 专打防御塔',
+      '🌀 怪物走弧线/螺旋路径',
+      '   需要环形布防',
+    ]);
+    y = oy + 50;
+
+    // 列2: 连携
+    section(col2, '🔗 塔连携（相邻激活）', '#ffd700', [
+      '🧫巨噬 + 🔬B细胞 → B射速+30%',
+      '🧫巨噬 + 🧬补体 → 巨噬范围+20',
+      '🔬B细胞 + 🧬补体 → 补体伤害+2',
+      '同种相邻 → 各自攻速+10%',
+      '',
+      '彩色连线表示连携已激活',
+    ]);
+    y += 140;
+
+    // 平静期
+    section(col2, '🧘 准备阶段', '#ff8866', [
+      '每 2 波后出现 10 秒准备期',
+      '期间不刷怪，可造塔+放道具',
+      '双方各回复 +20 ATP',
+      '推荐在平静期购买道具坑 AI',
+    ]);
+    y += 100;
+
+    // 道具
+    section(col2, '🎯 道具系统', '#cc88ff', [
+      '炎症因子 (80) — 目标受击面+30%',
+      '细菌毒素 (120) — 随机塔瘫痪3s',
+      '信号干扰 (100) — 塔混乱锁定',
+      '平静期是释放道具的最佳时机',
+    ]);
+
+    // 列3: Tips
+    section(col3, '💡 策略提示', '#ffffff', [
+      '• 开局 500 ATP，准备期还能',
+      '  赚 150 ATP，多铺塔',
+      '',
+      '• 巨噬放外层（+射程），',
+      '  能吞噬更多经过的怪',
+      '',
+      '• B细胞放内层（+伤害），',
+      '  远程覆盖全阵地',
+      '',
+      '• 补体放中间，对密集怪群',
+      '  效果最好',
+      '',
+      '• 巨噬+B细胞相邻 = 最佳',
+      '  防守组合，优先凑',
+      '',
+      '• 注意噬菌体打塔，及时补位',
+    ]);
+  }
+
+  _hideHelp() {
+    this._helpObjects.forEach(o => { if (o && o.destroy) o.destroy(); });
+    this._helpObjects = [];
+    this._helpVisible = false;
   }
 }
