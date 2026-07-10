@@ -76,6 +76,12 @@ class GameScene extends Phaser.Scene {
       backgroundColor: '#ffffffcc', padding: { x: 20, y: 10 },
     }).setOrigin(0.5);
 
+    // 准备期间每秒给 ATP，方便多造塔
+    const prepIncomeTimer = this.time.addEvent({
+      delay: 1000, repeat: countdown - 1,
+      callback: () => { this.playerATP.add(10); this.aiATP.add(10); },
+    });
+
     const timer = this.time.addEvent({
       delay: 1000, repeat: countdown - 1,
       callback: () => {
