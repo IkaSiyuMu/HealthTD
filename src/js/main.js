@@ -4,7 +4,7 @@ const game = new Phaser.Game({
   height: GAME_HEIGHT,
   parent: 'game-container',
   backgroundColor: '#fde8e8',
-  scene: [BootScene],
+  scene: [BootScene, MenuScene, GameScene, ResultScene],
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
