@@ -43,6 +43,19 @@ class GameScene extends Phaser.Scene {
     this.itemManager = new ItemManager(this, this.playerATP, this.aiATP);
     this._createItemShop();
 
+    // AI 使用道具回调
+    this.onAiUseItem = () => {
+      const keys = Object.keys(ITEMS);
+      const key = keys[Math.floor(Math.random() * keys.length)];
+      if (this.aiATP.spend(ITEMS[key].cost)) {
+        this.itemManager.activeEffects.push({
+          item: ITEMS[key], target: 'player',
+          startTime: Date.now(), duration: ITEMS[key].duration,
+        });
+        this._flashText(`AI 对你使用了 ${ITEMS[key].name}！`);
+      }
+    };
+
     // 建造 UI 状态
     this.selectedCell = null;
     this.buildMenu = this.add.graphics();

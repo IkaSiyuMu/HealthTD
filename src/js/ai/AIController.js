@@ -9,6 +9,19 @@ class AIController {
     this.lastDecision = time;
     if (this.atp.atp < 50) return;
     if (this.towers.length < 4 && this.atp.atp >= 100) { this._buildTower(); return; }
+
+    // 平静期优先用道具
+    if (this.scene.isCalm && this.atp.atp >= 80) {
+      if (Math.random() < 0.7 && this.scene.onAiUseItem) {
+        this.scene.onAiUseItem();
+        return;
+      }
+    }
+
+    // 已有4塔且钱多 → 买道具
+    if (this.towers.length >= 4 && this.atp.atp >= 120 && Math.random() < 0.35) {
+      if (this.scene.onAiUseItem) this.scene.onAiUseItem();
+    }
   }
   _buildTower() {
     const empty = this.grid.getEmptyCells();
