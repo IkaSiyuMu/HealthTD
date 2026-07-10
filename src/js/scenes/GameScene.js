@@ -75,11 +75,12 @@ class GameScene extends Phaser.Scene {
 
   _startPrepTime() {
     this.isCalm = true; // 准备期间也算平静期（不刷怪）
+    const font = 'Noto Sans SC, Arial, sans-serif';
     let countdown = 15;
     const prepText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 60, `准备时间 ${countdown}s`, {
-      fontSize: '28px', color: '#4a5f8e', fontStyle: 'bold',
-      backgroundColor: '#ffffffcc', padding: { x: 20, y: 10 },
-    }).setOrigin(0.5);
+      fontSize: '30px', fontFamily: font, color: '#ffffff', fontStyle: 'bold',
+      stroke: '#4a5f8e', strokeThickness: 4,
+    }).setOrigin(0.5).setDepth(10);
 
     // 准备期间每秒给 ATP，方便多造塔
     const prepIncomeTimer = this.time.addEvent({
@@ -161,40 +162,59 @@ class GameScene extends Phaser.Scene {
     this.buildMenu.clear();
 
     const menuX = cell.x;
-    const menuY = cell.y - 70;
+    const menuY = cell.y - 80;
+    const font = 'Noto Sans SC, Arial, sans-serif';
     const types = [
-      { key: 'MACROPHAGE', label: `巨噬细胞 (${TOWERS.MACROPHAGE.cost})`, color: 0x44aa88 },
-      { key: 'BCELL', label: `B细胞 (${TOWERS.BCELL.cost})`, color: 0x4488dd },
-      { key: 'COMPLEMENT', label: `补体系统 (${TOWERS.COMPLEMENT.cost})`, color: 0xdd8844 },
+      { key: 'MACROPHAGE', label: '🧫 巨噬细胞', cost: TOWERS.MACROPHAGE.cost, color: 0x44aa88 },
+      { key: 'BCELL', label: '🔬 B细胞', cost: TOWERS.BCELL.cost, color: 0x4488dd },
+      { key: 'COMPLEMENT', label: '🧬 补体系统', cost: TOWERS.COMPLEMENT.cost, color: 0xdd8844 },
     ];
 
-    // 清理旧菜单
     this._hideBuildMenu();
 
     // 背景
-    this.buildMenu.fillStyle(0x333333, 0.9);
-    this.buildMenu.fillRoundedRect(menuX - 95, menuY - 5, 190, 100, 6);
+    this.buildMenu.fillStyle(0x1a1a3e, 0.92);
+    this.buildMenu.fillRoundedRect(menuX - 100, menuY - 5, 200, 120, 10);
+    this.buildMenu.lineStyle(1, 0x88bbff, 0.2);
+    this.buildMenu.strokeRoundedRect(menuX - 100, menuY - 5, 200, 120, 10);
 
     types.forEach((t, i) => {
-      const ty = menuY + 15 + i * 28;
-      // 用 Phaser 原生交互 Zone + 文字
-      const zone = this.add.zone(menuX, ty, 176, 24).setInteractive({ useHandCursor: true });
+      const ty = menuY + 15 + i * 34;
+
+      // 按钮背景
+      const btnBg = this.add.graphics().setDepth(10);
+      const drawBtn = (hover) => {
+        btnBg.clear();
+        btnBg.fillStyle(hover ? t.color : 0x333355, hover ? 0.5 : 0.4);
+        btnBg.fillRoundedRect(menuX - 85, ty - 10, 170, 28, 6);
+        btnBg.lineStyle(1, t.color, hover ? 0.6 : 0.2);
+        btnBg.strokeRoundedRect(menuX - 85, ty - 10, 170, 28, 6);
+      };
+      drawBtn(false);
+
+      const txt = this.add.text(menuX - 10, ty, `${t.label}`, {
+        fontSize: '13px', fontFamily: font, color: '#ffffff',
+      }).setOrigin(0.5).setDepth(11);
+      const priceTxt = this.add.text(menuX + 72, ty, `${t.cost}⚡`, {
+        fontSize: '11px', fontFamily: font, color: '#ffd700',
+      }).setOrigin(0.5).setDepth(11);
+
+      const zone = this.add.zone(menuX, ty, 170, 28).setInteractive({ useHandCursor: true }).setDepth(12);
       zone._towerKey = t.key;
+      zone.on('pointerover', () => drawBtn(true));
+      zone.on('pointerout', () => drawBtn(false));
       zone.on('pointerdown', () => { this._buildTower(t.key); });
-      const txt = this.add.text(menuX, ty, `${t.label}`, {
-        fontSize: '13px', color: '#ffffff',
-      }).setOrigin(0.5);
-      this.buildMenuItems.push(zone, txt);
+      this.buildMenuItems.push(zone, btnBg, txt, priceTxt);
     });
 
     // 关闭按钮
-    const closeY = menuY + 15 + 3 * 28 + 2;
-    const closeZone = this.add.zone(menuX, closeY, 80, 20).setInteractive({ useHandCursor: true });
+    const closeY = menuY + 15 + 3 * 34 + 6;
+    const closeZone = this.add.zone(menuX, closeY, 80, 20).setInteractive({ useHandCursor: true }).setDepth(12);
     closeZone._towerKey = '__close__';
     closeZone.on('pointerdown', () => { this._hideBuildMenu(); });
-    const closeTxt = this.add.text(menuX, closeY, '[ 关闭 ]', {
-      fontSize: '11px', color: '#aaaaaa',
-    }).setOrigin(0.5);
+    const closeTxt = this.add.text(menuX, closeY, '[ 取消 ]', {
+      fontSize: '11px', fontFamily: 'Noto Sans SC, Arial, sans-serif', color: '#888888',
+    }).setOrigin(0.5).setDepth(11);
     this.buildMenuItems.push(closeZone, closeTxt);
   }
 
@@ -223,32 +243,52 @@ class GameScene extends Phaser.Scene {
 
   _createItemShop() {
     const y = 60;
+    const font = 'Noto Sans SC, Arial, sans-serif';
     const keys = Object.keys(ITEMS);
     keys.forEach((key, i) => {
       const item = ITEMS[key];
       const x = 90 + i * 150;
-      const txt = this.add.text(x, y, `买:${item.name}(${item.cost}ATP)`, {
-        fontSize: '12px', color: '#fff', backgroundColor: '#884488',
-        padding: { x: 6, y: 4 },
-      }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-      txt.on('pointerdown', () => this.itemManager.purchase(key));
+      const w = 130, h = 30;
+      const bg = this.add.graphics().setDepth(5);
+      const drawBtn = (hover) => {
+        bg.clear();
+        bg.fillStyle(hover ? 0x994499 : 0x884488, 0.8);
+        bg.fillRoundedRect(x - w / 2, y - h / 2, w, h, 8);
+        bg.lineStyle(1, 0xcc66cc, hover ? 0.4 : 0.15);
+        bg.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 8);
+      };
+      drawBtn(false);
+      const txt = this.add.text(x, y, `🛒 ${item.name}`, {
+        fontSize: '12px', fontFamily: font, color: '#fff',
+      }).setOrigin(0.5).setDepth(6);
+      const priceTxt = this.add.text(x, y + 14, `${item.cost}ATP`, {
+        fontSize: '9px', fontFamily: font, color: '#ffd700',
+      }).setOrigin(0.5).setDepth(6);
+      const zone = this.add.zone(x, y, w, h).setInteractive({ useHandCursor: true }).setDepth(7);
+      zone.on('pointerover', () => drawBtn(true));
+      zone.on('pointerout', () => drawBtn(false));
+      zone.on('pointerdown', () => this.itemManager.purchase(key));
     });
   }
 
   _flashText(msg) {
+    const font = 'Noto Sans SC, Arial, sans-serif';
     const t = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 60, msg, {
-      fontSize: '20px', color: '#ff4444', fontStyle: 'bold',
-    }).setOrigin(0.5);
-    this.tweens.add({ targets: t, alpha: 0, y: t.y - 30, duration: 1000, onComplete: () => t.destroy() });
+      fontSize: '22px', fontFamily: font, color: '#ff6644', fontStyle: 'bold',
+      stroke: '#000000', strokeThickness: 3,
+    }).setOrigin(0.5).setDepth(15);
+    this.tweens.add({ targets: t, alpha: 0, y: t.y - 40, duration: 1200, ease: 'Power2',
+      onComplete: () => t.destroy(),
+    });
   }
 
   _onCalmStart() {
     this.isCalm = true;
-    // 顶部小提示
-    const t = this.add.text(GAME_WIDTH / 2, 6, '▎准备阶段 — 抓紧造塔或使用道具', {
-      fontSize: '14px', color: '#ff8866', fontStyle: 'bold',
-      backgroundColor: '#ffffffdd', padding: { x: 10, y: 3 },
-    }).setOrigin(0.5, 0);
+    const font = 'Noto Sans SC, Arial, sans-serif';
+    const t = this.add.text(GAME_WIDTH / 2, 6, '▎ 准备阶段 — 抓紧造塔或使用道具', {
+      fontSize: '13px', fontFamily: font, color: '#ff8866', fontStyle: 'bold',
+      backgroundColor: '#1a1a3edd', padding: { x: 12, y: 4 },
+    }).setOrigin(0.5, 0).setDepth(15);
     t._calmText = true;
     this.playerATP.add(CALM_ATP_REWARD);
     this.aiATP.add(CALM_ATP_REWARD);
@@ -257,9 +297,11 @@ class GameScene extends Phaser.Scene {
 
   _onCalmEnd() {
     this.isCalm = false;
+    const font = 'Noto Sans SC, Arial, sans-serif';
     const t = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 80, '⚡ 进攻恢复！', {
-      fontSize: '18px', color: '#ff8844',
-    }).setOrigin(0.5);
+      fontSize: '16px', fontFamily: font, color: '#ff8844',
+      stroke: '#000', strokeThickness: 2,
+    }).setOrigin(0.5).setDepth(10);
     this.time.delayedCall(1500, () => t.destroy());
   }
 
@@ -287,7 +329,15 @@ class GameScene extends Phaser.Scene {
   }
 
   _onWaveStart(waveIdx) {
-    this._flashText(`第 ${waveIdx + 1} 波`);
+    const font = 'Noto Sans SC, Arial, sans-serif';
+    const t = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 80, `第 ${waveIdx + 1} 波`, {
+      fontSize: '32px', fontFamily: font, color: '#ff8844', fontStyle: 'bold',
+      stroke: '#000000', strokeThickness: 4,
+    }).setOrigin(0.5).setDepth(15).setAlpha(0);
+    this.tweens.add({
+      targets: t, alpha: 1, duration: 300, yoyo: true, hold: 800,
+      onComplete: () => t.destroy(),
+    });
   }
 
   _gameOver(loser) {
