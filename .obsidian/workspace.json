@@ -185,6 +185,7 @@
   },
   "active": "933600c1fcba0f1c",
   "lastOpenFiles": [
+    "src/js/systems/HexGrid.js.tmp.63260.cb8716cf8f3c",
     "src/js/scenes/ResultScene.js",
     "src/js/scenes/GameScene.js",
     "src/js/scenes/MenuScene.js",
@@ -195,7 +196,6 @@
     "src/js/entities/Monster.js",
     "src/js/entities/Bullet.js",
     "src/js/entities/Tower.js",
-    "src/js/entities/Nucleus.js",
     "docs/superpowers/plans/2026-07-10-mvp-implementation.md",
     "docs/specs/2026-07-10-combat-balance.md",
     "README.md"
