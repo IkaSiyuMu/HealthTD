@@ -185,6 +185,7 @@
   },
   "active": "933600c1fcba0f1c",
   "lastOpenFiles": [
+    "src/js/scenes/GameScene.js.tmp.63260.0b2452114f52",
     "src/js/scenes/GameScene.js.tmp.63260.13bffb26426d",
     "src/js/scenes/GameScene.js.tmp.63260.6b13cfc34791",
     "src/js/scenes/GameScene.js.tmp.63260.051959556c97",
@@ -195,7 +196,6 @@
     "src/js/scenes/GameScene.js.tmp.63260.cc9d0cb86646",
     "src/js/entities/Monster.js.tmp.63260.d0643ecfc9a1",
     "src/js/entities/Tower.js.tmp.63260.2a53969ebb85",
-    "src/js/systems/HexGrid.js.tmp.63260.1a02319b5e8c",
     "docs/superpowers/plans/2026-07-10-strategy-depth-plan.md",
     "docs/specs/2026-07-10-strategy-depth.md",
     "docs/superpowers/plans/2026-07-10-mvp-implementation.md",
