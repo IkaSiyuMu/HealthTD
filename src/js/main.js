@@ -5,8 +5,15 @@ const game = new Phaser.Game({
   parent: 'game-container',
   backgroundColor: '#fde8e8',
   scene: [BootScene, MenuScene, GameScene, ResultScene],
+  render: {
+    antialias: true,
+    antialiasGL: true,
+    pixelArt: false,
+    roundPixels: false,
+  },
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
+    min: { width: 800, height: 500 },
   },
 });

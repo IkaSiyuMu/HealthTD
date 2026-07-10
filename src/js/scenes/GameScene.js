@@ -4,6 +4,7 @@ class GameScene extends Phaser.Scene {
   create() {
     this._isGameOver = false;
     this.isCalm = false;
+    this.gameStarted = false;
     this.monsters = [];
     this.bullets = [];
     this.playerTowers = [];
@@ -34,7 +35,6 @@ class GameScene extends Phaser.Scene {
     this.waveManager.onCalmStart = () => this._onCalmStart();
     this.waveManager.onCalmEnd = () => this._onCalmEnd();
     this.waveManager.onWaveStart = (waveIdx) => this._onWaveStart(waveIdx);
-    this.waveManager.start();
 
     // AI
     this.aiController = new AIController(this, this.aiGrid, this.aiATP, this.aiNucleus);
@@ -63,6 +63,35 @@ class GameScene extends Phaser.Scene {
 
     // 点击输入
     this.input.on('pointerdown', (pointer) => this._handleClick(pointer.x, pointer.y));
+
+    // === 开局准备倒计时 ===
+    this._startPrepTime();
+  }
+
+  _startPrepTime() {
+    this.isCalm = true; // 准备期间也算平静期（不刷怪）
+    let countdown = 15;
+    const prepText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 60, `准备时间 ${countdown}s`, {
+      fontSize: '28px', color: '#4a5f8e', fontStyle: 'bold',
+      backgroundColor: '#ffffffcc', padding: { x: 20, y: 10 },
+    }).setOrigin(0.5);
+
+    const timer = this.time.addEvent({
+      delay: 1000, repeat: countdown - 1,
+      callback: () => {
+        countdown--;
+        prepText.setText(`准备时间 ${countdown}s`);
+        if (countdown <= 5) prepText.setColor('#ff6644');
+      },
+    });
+
+    this.time.delayedCall(countdown * 1000, () => {
+      prepText.destroy();
+      this.isCalm = false;
+      this.gameStarted = true;
+      this.waveManager.start();
+      this._flashText('战斗开始！');
+    });
   }
 
   _drawArena(pos) {
@@ -100,18 +129,17 @@ class GameScene extends Phaser.Scene {
   _handleClick(px, py) {
     if (this._isGameOver) return;
 
-    // 先检查建造菜单点击
+    // 建造菜单打开时只响应菜单按钮
     if (this.buildMenuVisible) {
       for (const item of this.buildMenuItems) {
         if (item._hitBox && px >= item._hitBox.x && px <= item._hitBox.x + item._hitBox.w &&
             py >= item._hitBox.y && py <= item._hitBox.y + item._hitBox.h) {
+          if (item._towerKey === '__close__') { this._hideBuildMenu(); return; }
           this._buildTower(item._towerKey);
           return;
         }
       }
-      // 点击菜单外关闭菜单
-      this._hideBuildMenu();
-      return;
+      return; // 点击菜单外不做任何事
     }
 
     // 检查点击六边形
@@ -122,11 +150,7 @@ class GameScene extends Phaser.Scene {
     const cell = this.playerGrid.getCellAtPixel(px, py);
     if (!cell || !cell.buildable || cell.occupied) return;
 
-    if (this.isCalm) {
-      this._flashText('平静期无法造塔！');
-      return;
-    }
-
+    // 准备期间/平静期可以造塔（不限制）
     this._showBuildMenu(cell);
   }
 
@@ -136,7 +160,7 @@ class GameScene extends Phaser.Scene {
     this.buildMenu.clear();
 
     const menuX = cell.x;
-    const menuY = cell.y - 65;
+    const menuY = cell.y - 70;
     const types = [
       { key: 'MACROPHAGE', label: `巨噬细胞 (${TOWERS.MACROPHAGE.cost})`, color: 0x44aa88 },
       { key: 'BCELL', label: `B细胞 (${TOWERS.BCELL.cost})`, color: 0x4488dd },
@@ -147,18 +171,27 @@ class GameScene extends Phaser.Scene {
     this._hideBuildMenu();
 
     // 背景
-    this.buildMenu.fillStyle(0x333333, 0.85);
-    this.buildMenu.fillRoundedRect(menuX - 85, menuY - 5, 170, 75, 6);
+    this.buildMenu.fillStyle(0x333333, 0.9);
+    this.buildMenu.fillRoundedRect(menuX - 95, menuY - 5, 190, 95, 6);
 
     types.forEach((t, i) => {
-      const ty = menuY + 10 + i * 24;
+      const ty = menuY + 12 + i * 26;
       const txt = this.add.text(menuX, ty, `${t.label}`, {
-        fontSize: '12px', color: '#ffffff',
+        fontSize: '13px', color: '#ffffff',
       }).setOrigin(0.5);
       txt._towerKey = t.key;
-      txt._hitBox = { x: menuX - 80, y: ty - 8, w: 160, h: 20 };
+      txt._hitBox = { x: menuX - 88, y: ty - 10, w: 176, h: 22 };
       this.buildMenuItems.push(txt);
     });
+
+    // 关闭按钮
+    const closeY = menuY + 12 + 3 * 26 + 4;
+    const closeTxt = this.add.text(menuX, closeY, '[ 关闭 ]', {
+      fontSize: '11px', color: '#aaaaaa',
+    }).setOrigin(0.5);
+    closeTxt._towerKey = '__close__';
+    closeTxt._hitBox = { x: menuX - 40, y: closeY - 8, w: 80, h: 18 };
+    this.buildMenuItems.push(closeTxt);
   }
 
   _buildTower(towerKey) {
@@ -207,14 +240,15 @@ class GameScene extends Phaser.Scene {
 
   _onCalmStart() {
     this.isCalm = true;
-    const t = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 80, '🧬 平静期 — 干扰对手的最佳时机！', {
-      fontSize: '22px', color: '#ff6666', fontStyle: 'bold',
-      backgroundColor: '#ffffffcc', padding: { x: 16, y: 8 },
-    }).setOrigin(0.5);
+    // 顶部小提示
+    const t = this.add.text(GAME_WIDTH / 2, 6, '▎准备阶段 — 抓紧造塔或使用道具', {
+      fontSize: '14px', color: '#ff8866', fontStyle: 'bold',
+      backgroundColor: '#ffffffdd', padding: { x: 10, y: 3 },
+    }).setOrigin(0.5, 0);
     t._calmText = true;
     this.playerATP.add(CALM_ATP_REWARD);
     this.aiATP.add(CALM_ATP_REWARD);
-    this.time.delayedCall(CALM_DURATION - 500, () => { if (t._calmText) t.destroy(); });
+    this.time.delayedCall(CALM_DURATION - 300, () => { if (t._calmText) t.destroy(); });
   }
 
   _onCalmEnd() {
