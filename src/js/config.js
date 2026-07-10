@@ -13,7 +13,7 @@ const ARENA = {
   NUCLEUS_RADIUS: 40,
   NUCLEUS_HP: 100,
   NUCLEUS_COLOR: 0x4a5f8e,
-  INITIAL_ATP: 200,
+  INITIAL_ATP: 500,
 };
 
 const ARENA_POSITIONS = {
@@ -43,14 +43,14 @@ const MONSTERS = {
 
 // --- 波次 ---
 const WAVES = [
-  { staph: 5,  strep: 0, phage: 0 },
-  { staph: 5,  strep: 2, phage: 0 },
-  { staph: 6,  strep: 3, phage: 1 },
+  { staph: 6,  strep: 0, phage: 0 },
+  { staph: 6,  strep: 3, phage: 0 },
   { staph: 8,  strep: 4, phage: 2 },
-  { staph: 5,  strep: 5, phage: 3 },
   { staph: 10, strep: 6, phage: 3 },
-  { staph: 8,  strep: 8, phage: 4 },
-  { staph: 10, strep: 8, phage: 5 },
+  { staph: 12, strep: 8, phage: 4 },
+  { staph: 14, strep: 10, phage: 5 },
+  { staph: 16, strep: 12, phage: 6 },
+  { staph: 20, strep: 14, phage: 8 },
 ];
 
 const WAVE_INTERVAL = 15000;
