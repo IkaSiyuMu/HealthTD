@@ -14,6 +14,9 @@ class Monster {
     this.onDeath = null;
     this.attackTimer = 0;
     this.attackInterval = 1000;
+    this.engulfed = false;      // 被巨噬细胞吞噬定身
+    this.engulfSource = null;   // 吞噬来源的塔
+    this.slowFactor = 1.0;      // 减速倍率
     this.graphics = scene.add.graphics();
     this.draw();
   }
@@ -23,53 +26,21 @@ class Monster {
 
     // 噬菌体：攻击最近的塔
     if (this.config.type === 'towerHunter') {
-      let nearestTower = null;
-      let minDist = 80;
-      const allTowers = [
-        ...(this.scene.playerTowers || []),
-        ...(this.scene.aiController ? this.scene.aiController.towers : []),
-      ];
-      // 确定目标方
-      const forPlayer = Math.abs(this.targetX - ARENA_POSITIONS.PLAYER.x) < Math.abs(this.targetX - ARENA_POSITIONS.AI.x);
-      const searchTowers = forPlayer ? (this.scene.playerTowers || []) : (this.scene.aiController ? this.scene.aiController.towers : []);
-
-      searchTowers.forEach(t => {
-        if (t.hp <= 0) return;
-        const dx = t.x - this.x, dy = t.y - this.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < minDist) {
-          minDist = dist;
-          nearestTower = t;
-        }
-      });
-
-      if (nearestTower) {
-        this.attackTimer += delta;
-        if (this.attackTimer >= this.attackInterval) {
-          this.attackTimer = 0;
-          const dead = nearestTower.takeDamage(this.config.damageTower);
-          if (dead) {
-            const arr = forPlayer ? this.scene.playerTowers : this.scene.aiController.towers;
-            const grid = forPlayer ? this.scene.playerGrid : this.scene.aiGrid;
-            if (arr) {
-              const idx = arr.indexOf(nearestTower);
-              if (idx >= 0) arr.splice(idx, 1);
-              // 释放格位
-              const cell = grid.getCellAtPixel(nearestTower.x, nearestTower.y);
-              if (cell) { cell.occupied = false; grid.render(); }
-            }
-          }
-        }
-        // 移向塔
-        const dx = nearestTower.x - this.x, dy = nearestTower.y - this.y;
-        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-        const step = this.speed * (delta / 1000);
-        this.x += (dx / dist) * step;
-        this.y += (dy / dist) * step;
-        this.draw();
-        return;
-      }
+      this._towerHunterUpdate(delta);
+      return;
     }
+
+    // === 阻拦系统 ===
+    this._checkBlocking(delta);
+
+    // 被吞噬 → 不能移动，被拉向塔的位置
+    if (this.engulfed && this.engulfSource && this.engulfSource.hp > 0) {
+      this.x += (this.engulfSource.x - this.x) * 0.08;
+      this.y += (this.engulfSource.y - this.y) * 0.08;
+      this.draw();
+      return;
+    }
+    this.engulfed = false;
 
     // 移向细胞核
     const dx = this.targetX - this.x;
@@ -81,6 +52,85 @@ class Monster {
       return;
     }
 
+    const step = this.speed * (delta / 1000) * this.slowFactor;
+    this.x += (dx / dist) * step;
+    this.y += (dy / dist) * step;
+    this.draw();
+  }
+
+  _checkBlocking(delta) {
+    this.slowFactor = 1.0;
+    this.engulfed = false;
+    this.engulfSource = null;
+
+    // 确定属于哪一方
+    const forPlayer = Math.abs(this.targetX - ARENA_POSITIONS.PLAYER.x) < Math.abs(this.targetX - ARENA_POSITIONS.AI.x);
+    const towers = forPlayer ? (this.scene.playerTowers || []) : (this.scene.aiController ? this.scene.aiController.towers : []);
+
+    towers.forEach(t => {
+      if (t.hp <= 0) return;
+      const dx = t.x - this.x, dy = t.y - this.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      // 巨噬细胞：吞噬定身（40px 范围）
+      if (t.config.type === 'melee' && dist <= 40) {
+        this.engulfed = true;
+        this.engulfSource = t;
+      }
+
+      // 所有塔都有减速区域（25px 范围）
+      if (dist <= 25) {
+        this.slowFactor = Math.min(this.slowFactor, 0.5);
+      }
+    });
+  }
+
+  _towerHunterUpdate(delta) {
+    let nearestTower = null;
+    let minDist = 80;
+    const forPlayer = Math.abs(this.targetX - ARENA_POSITIONS.PLAYER.x) < Math.abs(this.targetX - ARENA_POSITIONS.AI.x);
+    const searchTowers = forPlayer ? (this.scene.playerTowers || []) : (this.scene.aiController ? this.scene.aiController.towers : []);
+
+    searchTowers.forEach(t => {
+      if (t.hp <= 0) return;
+      const dx = t.x - this.x, dy = t.y - this.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < minDist) {
+        minDist = dist;
+        nearestTower = t;
+      }
+    });
+
+    if (nearestTower) {
+      this.attackTimer += delta;
+      if (this.attackTimer >= this.attackInterval) {
+        this.attackTimer = 0;
+        const dead = nearestTower.takeDamage(this.config.damageTower);
+        if (dead) {
+          const arr = forPlayer ? this.scene.playerTowers : this.scene.aiController.towers;
+          const grid = forPlayer ? this.scene.playerGrid : this.scene.aiGrid;
+          if (arr) {
+            const idx = arr.indexOf(nearestTower);
+            if (idx >= 0) arr.splice(idx, 1);
+            const cell = grid.getCellAtPixel(nearestTower.x, nearestTower.y);
+            if (cell) { cell.occupied = false; grid.render(); }
+          }
+        }
+      }
+      // 移向塔
+      const dx = nearestTower.x - this.x, dy = nearestTower.y - this.y;
+      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+      const step = this.speed * (delta / 1000);
+      this.x += (dx / dist) * step;
+      this.y += (dy / dist) * step;
+      this.draw();
+      return;
+    }
+
+    // 没有找到塔，走向细胞核
+    const dx = this.targetX - this.x, dy = this.targetY - this.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < 8) { this.reachedTarget = true; return; }
     const step = this.speed * (delta / 1000);
     this.x += (dx / dist) * step;
     this.y += (dy / dist) * step;
