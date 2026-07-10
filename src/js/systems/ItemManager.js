@@ -22,7 +22,6 @@ class ItemManager {
     this.activeEffects = this.activeEffects.filter(e => Date.now() - e.startTime < e.duration);
   }
   renderUI() {
-  renderUI() {
     this.graphics.clear();
     this.scene.children.each(child => { if (child._isItemUI) child.destroy(); });
     const font = 'Noto Sans SC, Arial, sans-serif';
@@ -51,6 +50,5 @@ class ItemManager {
       txt.on('pointerdown', () => this.useItem(i, 'ai'));
       bg._isItemUI = true;
     });
-  }
   }
 }
