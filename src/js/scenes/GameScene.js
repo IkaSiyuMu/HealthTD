@@ -154,10 +154,9 @@ class GameScene extends Phaser.Scene {
       const ty = menuY + 10 + i * 24;
       const txt = this.add.text(menuX, ty, `${t.label}`, {
         fontSize: '12px', color: '#ffffff',
-      }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+      }).setOrigin(0.5);
       txt._towerKey = t.key;
       txt._hitBox = { x: menuX - 80, y: ty - 8, w: 160, h: 20 };
-      txt.on('pointerdown', (ptr) => { ptr.event.stopPropagation(); this._buildTower(t.key); });
       this.buildMenuItems.push(txt);
     });
   }

@@ -185,6 +185,8 @@
   },
   "active": "933600c1fcba0f1c",
   "lastOpenFiles": [
+    "src/js/systems/WaveManager.js.tmp.63260.a33b6edd2bc8",
+    "src/js/scenes/GameScene.js.tmp.63260.4984c23c1c11",
     "src/js/scenes/GameScene.js.tmp.63260.08ebd76a6cfa",
     "src/js/ai/AIController.js.tmp.63260.4bd5486a9a8b",
     "src/js/entities/Bullet.js.tmp.63260.a89338f34ca8",
@@ -194,8 +196,6 @@
     "src/js/scenes/ResultScene.js.tmp.63260.b032a33010f0",
     "src/js/ai/AIController.js.tmp.63260.4376835c4fe5",
     "src/js/systems/ItemManager.js.tmp.63260.3b7f7d33f4a4",
-    "src/js/systems/ATPManager.js.tmp.63260.c603cc4fe712",
-    "src/js/systems/WaveManager.js.tmp.63260.f8432fdbcfe1",
     "docs/superpowers/plans/2026-07-10-mvp-implementation.md",
     "docs/specs/2026-07-10-combat-balance.md",
     "README.md"
