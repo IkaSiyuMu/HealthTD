@@ -8,6 +8,7 @@ class HexGrid {
     this.cells = [];
     this.graphics = scene.add.graphics();
     this._generate();
+    this._placeSpecialCells();
   }
 
   _generate() {
@@ -15,14 +16,24 @@ class HexGrid {
       for (let r = -this.gridRadius; r <= this.gridRadius; r++) {
         if (Math.abs(q + r) > this.gridRadius) continue;
         const pos = this._hexToPixel(q, r);
-        const dx = pos.x - this.cx;
-        const dy = pos.y - this.cy;
+        const dx = pos.x - this.cx, dy = pos.y - this.cy;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        // 只保留环形带：核外侧 55px ~ 膜内侧 185px
         const buildable = dist >= 55 && dist <= ARENA.RADIUS - 15;
-        this.cells.push({ q, r, x: pos.x, y: pos.y, occupied: false, buildable });
+        let zone = 'middle';
+        if (buildable) {
+          if (dist <= 100) zone = 'outer';
+          else if (dist <= 150) zone = 'middle';
+          else zone = 'inner';
+        }
+        this.cells.push({ q, r, x: pos.x, y: pos.y, occupied: false, buildable, zone, special: null });
       }
     }
+  }
+
+  _placeSpecialCells() {
+    const middleCells = this.cells.filter(c => c.buildable && c.zone === 'middle');
+    const shuffled = [...middleCells].sort(() => Math.random() - 0.5);
+    shuffled.slice(0, 2).forEach(c => { c.special = 'mitochondria'; });
   }
 
   _hexToPixel(q, r) {
@@ -59,6 +70,17 @@ class HexGrid {
     return this.cells.find(c => c.q === hex.q && c.r === hex.r) || null;
   }
 
+  getNeighbors(q, r) {
+    const offsets = [
+      { dq: -1, dr: 0 }, { dq: 1, dr: 0 },
+      { dq: 0, dr: -1 }, { dq: 0, dr: 1 },
+      { dq: -1, dr: 1 }, { dq: 1, dr: -1 },
+    ];
+    return offsets
+      .map(o => this.cells.find(c => c.q === q + o.dq && c.r === o.dr))
+      .filter(c => c && c.occupied);
+  }
+
   setOccupied(q, r, val) {
     const cell = this.cells.find(c => c.q === q && c.r === r);
     if (cell) cell.occupied = val;
@@ -70,6 +92,7 @@ class HexGrid {
 
   render() {
     this.graphics.clear();
+    const time = Date.now();
     this.cells.forEach(c => {
       if (!c.buildable) return;
       const verts = [];
@@ -77,18 +100,38 @@ class HexGrid {
         const corner = this._hexCorner(c.x, c.y, i);
         verts.push(corner.x, corner.y);
       }
-      const fillColor = c.occupied ? 0x44dd88 : 0xccccff;
-      const alpha = c.occupied ? 0.5 : 0.2;
-      this.graphics.fillStyle(fillColor, alpha);
+
+      // 地形底色
+      let baseColor, baseAlpha;
+      if (c.occupied) {
+        baseColor = 0x44dd88; baseAlpha = 0.5;
+      } else {
+        if (c.zone === 'outer')      { baseColor = 0x64b4ff; baseAlpha = 0.15; }
+        else if (c.zone === 'middle') { baseColor = 0x64ff96; baseAlpha = 0.12; }
+        else if (c.zone === 'inner')  { baseColor = 0xb464ff; baseAlpha = 0.15; }
+        else { baseColor = 0xccccff; baseAlpha = 0.2; }
+      }
+
+      this.graphics.fillStyle(baseColor, baseAlpha);
       this.graphics.beginPath();
       this.graphics.moveTo(verts[0], verts[1]);
-      for (let i = 2; i < verts.length; i += 2) {
-        this.graphics.lineTo(verts[i], verts[i + 1]);
-      }
+      for (let i = 2; i < verts.length; i += 2) this.graphics.lineTo(verts[i], verts[i + 1]);
       this.graphics.closePath();
       this.graphics.fillPath();
-      this.graphics.lineStyle(1, 0x8888cc, 0.25);
-      this.graphics.strokePath();
+
+      // 特殊格（线粒体）闪烁边框
+      if (c.special === 'mitochondria' && !c.occupied) {
+        const glow = 0.4 + Math.sin(time * 0.004) * 0.3;
+        this.graphics.lineStyle(2, 0xffd700, glow);
+        this.graphics.beginPath();
+        this.graphics.moveTo(verts[0], verts[1]);
+        for (let i = 2; i < verts.length; i += 2) this.graphics.lineTo(verts[i], verts[i + 1]);
+        this.graphics.closePath();
+        this.graphics.strokePath();
+      } else {
+        this.graphics.lineStyle(1, 0x8888cc, 0.25);
+        this.graphics.strokePath();
+      }
     });
   }
 }

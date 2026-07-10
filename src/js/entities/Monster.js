@@ -42,7 +42,7 @@ class Monster {
     }
     this.engulfed = false;
 
-    // 移向细胞核
+    // 移向细胞核（螺旋路径）
     const dx = this.targetX - this.x;
     const dy = this.targetY - this.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
@@ -52,9 +52,14 @@ class Monster {
       return;
     }
 
+    const dirX = dx / dist;
+    const dirY = dy / dist;
+    const orbitStr = this.config.orbitStrength || 0;
+    const perpX = -dirY * orbitStr;
+    const perpY = dirX * orbitStr;
     const step = this.speed * (delta / 1000) * this.slowFactor;
-    this.x += (dx / dist) * step;
-    this.y += (dy / dist) * step;
+    this.x += (dirX + perpX) * step;
+    this.y += (dirY + perpY) * step;
     this.draw();
   }
 

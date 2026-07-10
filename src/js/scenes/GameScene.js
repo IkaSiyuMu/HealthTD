@@ -202,7 +202,7 @@ class GameScene extends Phaser.Scene {
     this.playerGrid.setOccupied(this.selectedCell.q, this.selectedCell.r, true);
     this.playerGrid.render();
 
-    const tower = new Tower(this, this.selectedCell.x, this.selectedCell.y, config);
+    const tower = new Tower(this, this.selectedCell.x, this.selectedCell.y, config, this.selectedCell);
     this.playerTowers.push(tower);
 
     this._hideBuildMenu();
@@ -257,6 +257,29 @@ class GameScene extends Phaser.Scene {
     this.time.delayedCall(1500, () => t.destroy());
   }
 
+  _processSynergies() {
+    this.playerTowers.forEach(t => {
+      if (t.hp <= 0 || !t.cell) return;
+      const neighbors = this.playerGrid.getNeighbors(t.cell.q, t.cell.r);
+      const neighborTowers = neighbors
+        .map(c => this.playerTowers.find(ot => ot.cell && ot.cell.q === c.q && ot.cell.r === c.r))
+        .filter(nt => nt && nt.hp > 0);
+      t.updateSynergy(neighborTowers);
+    });
+
+    if (this.aiController) {
+      const aiTowers = this.aiController.towers || [];
+      aiTowers.forEach(t => {
+        if (t.hp <= 0 || !t.cell) return;
+        const neighbors = this.aiGrid.getNeighbors(t.cell.q, t.cell.r);
+        const neighborTowers = neighbors
+          .map(c => aiTowers.find(ot => ot.cell && ot.cell.q === c.q && ot.cell.r === c.r))
+          .filter(nt => nt && nt.hp > 0);
+        t.updateSynergy(neighborTowers);
+      });
+    }
+  }
+
   _onWaveStart(waveIdx) {
     this._flashText(`第 ${waveIdx + 1} 波`);
   }
@@ -300,6 +323,9 @@ class GameScene extends Phaser.Scene {
     // 怪物
     this.monsters.forEach(m => m.update(delta));
 
+    // 塔连携：收集邻居并激活
+    this._processSynergies();
+
     // 塔
     this.playerTowers.forEach(t => t.update(time, delta, this.monsters, this.bullets));
 
@@ -319,6 +345,12 @@ class GameScene extends Phaser.Scene {
     this.monsters = this.monsters.filter(m => {
       if (!m.alive) {
         if (m.onDeath) m.onDeath();
+        // 线粒体额外 ATP
+        if (m._lastAttacker && m._lastAttacker.zoneBonus && m._lastAttacker.zoneBonus.atpBonus) {
+          const isPlayer = this.playerTowers.includes(m._lastAttacker);
+          const atpMgr = isPlayer ? this.playerATP : this.aiATP;
+          atpMgr.add(m._lastAttacker.zoneBonus.atpBonus);
+        }
         return false;
       }
       if (m.reachedTarget) {

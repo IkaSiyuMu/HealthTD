@@ -36,7 +36,7 @@ class AIController {
     const cell = empty[0];
     this.grid.setOccupied(cell.q, cell.r, true);
     this.grid.render();
-    this.towers.push(new Tower(this.scene, cell.x, cell.y, config));
+    this.towers.push(new Tower(this.scene, cell.x, cell.y, config, cell));
   }
   updateTowers(time, delta, monsters, bullets) {
     this.towers.forEach(t => t.update(time, delta, monsters, bullets));

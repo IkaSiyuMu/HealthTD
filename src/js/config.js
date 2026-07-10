@@ -36,9 +36,9 @@ const TOWERS = {
 
 // --- 怪物 ---
 const MONSTERS = {
-  STAPH:  { name: '葡萄球菌', hp: 30, speed: 60,  damageNucleus: 5,  damageTower: 0, atpReward: 5,  color: 0xd4a017, radius: 10, type: 'basic' },
-  STREP:  { name: '链球菌',   hp: 15, speed: 110, damageNucleus: 3,  damageTower: 0, atpReward: 3,  color: 0x66bb44, radius: 7,  type: 'fast' },
-  PHAGE:  { name: '噬菌体',   hp: 50, speed: 55,  damageNucleus: 8,  damageTower: 5, atpReward: 10, color: 0x8844aa, radius: 12, type: 'towerHunter' },
+  STAPH:  { name: '葡萄球菌', hp: 30, speed: 60,  damageNucleus: 5,  damageTower: 0, atpReward: 5,  color: 0xd4a017, radius: 10, type: 'basic', orbitStrength: 0.3 },
+  STREP:  { name: '链球菌',   hp: 15, speed: 110, damageNucleus: 3,  damageTower: 0, atpReward: 3,  color: 0x66bb44, radius: 7,  type: 'fast',  orbitStrength: 0.1 },
+  PHAGE:  { name: '噬菌体',   hp: 50, speed: 55,  damageNucleus: 8,  damageTower: 5, atpReward: 10, color: 0x8844aa, radius: 12, type: 'towerHunter', orbitStrength: 0 },
 };
 
 // --- 波次 ---
@@ -66,3 +66,11 @@ const ITEMS = {
 };
 const MAX_ITEM_SLOTS = 2;
 const ITEM_COOLDOWN = 2000;
+
+// --- 塔连携 ---
+const SYNERGY_MAP = {
+  'melee+ranged': { name: '协同攻击', color: 0xffd700, desc: 'B细胞射速+30%' },
+  'melee+aoe':    { name: '膜通道',   color: 0xff6644, desc: '巨噬细胞范围+20px' },
+  'ranged+aoe':   { name: '免疫复合物', color: 0x4488ff, desc: '补体伤害+2' },
+};
+const SAME_SYNERGY = { name: '同种聚集', color: 0xffffff, desc: '攻速+10%' };
