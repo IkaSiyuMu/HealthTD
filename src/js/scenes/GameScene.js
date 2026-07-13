@@ -535,7 +535,6 @@ class GameScene extends Phaser.Scene {
       '• 平静期记得买道具坑 AI',
     ]);
   }
-  }
 
   _hideHelp() {
     this._helpObjects.forEach(o => { if (o && o.destroy) o.destroy(); });

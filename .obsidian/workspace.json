@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "docs/specs/2026-07-10-mvp-design.md",
+                "file": "docs/specs/2026-07-10-combat-balance.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "2026-07-10-mvp-design"
+              "title": "2026-07-10-combat-balance"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "docs/specs/2026-07-10-mvp-design.md",
+                "file": "docs/specs/2026-07-10-combat-balance.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "2026-07-10-mvp-design 的反向链接列表"
+              "title": "2026-07-10-combat-balance 的反向链接列表"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "docs/specs/2026-07-10-mvp-design.md",
+                "file": "docs/specs/2026-07-10-combat-balance.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "2026-07-10-mvp-design 的出链列表"
+              "title": "2026-07-10-combat-balance 的出链列表"
             }
           },
           {
@@ -156,13 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "docs/specs/2026-07-10-mvp-design.md",
+                "file": "docs/specs/2026-07-10-combat-balance.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "2026-07-10-mvp-design 的大纲"
+              "title": "2026-07-10-combat-balance 的大纲"
             }
           }
         ]
@@ -180,26 +180,27 @@
       "daily-notes:打开/创建今天的日记": false,
       "templates:插入模板": false,
       "command-palette:打开命令面板": false,
-      "bases:新建数据库": false
+      "bases:新建数据库": false,
+      "table-editor-obsidian:Advanced Tables Toolbar": false
     }
   },
   "active": "933600c1fcba0f1c",
   "lastOpenFiles": [
+    "docs/specs/2026-07-10-strategy-depth.md",
+    "docs/specs/2026-07-10-combat-balance.md",
+    "docs/specs/2026-07-10-mvp-design.md",
+    "未命名.base",
+    "src/css/style.css.tmp.63260.f80dd92d6e01",
+    "src/js/systems/ATPManager.js.tmp.63260.43fe3a5ded18",
+    "src/js/scenes/ResultScene.js.tmp.63260.ad16e80de349",
+    "index.html.tmp.63260.5513c5250de5",
+    "src/js/scenes/MenuScene.js.tmp.63260.c6476742b5a5",
+    "src/js/scenes/GameScene.js.tmp.63260.535d7a004f22",
     "src/js/systems/ItemManager.js.tmp.63260.33e20b230e06",
     "src/js/systems/ItemManager.js.tmp.63260.fa90986ec126",
     "src/js/systems/ItemManager.js.tmp.63260.35a95f548111",
-    "src/js/scenes/GameScene.js.tmp.63260.329fbecd281c",
-    "src/js/scenes/GameScene.js.tmp.63260.2a17dc74e1c7",
-    "src/js/scenes/GameScene.js.tmp.63260.d4f98adcadf2",
-    "src/js/scenes/GameScene.js.tmp.63260.fb9982f52987",
-    "src/js/scenes/GameScene.js.tmp.63260.cc3e7294564d",
-    "src/js/scenes/GameScene.js.tmp.63260.918d0f9ae160",
-    "src/js/systems/ATPManager.js.tmp.63260.31e04a9ca943",
-    "src/js/scenes/ResultScene.js.tmp.63260.e4e8ffcfd077",
     "docs/superpowers/plans/2026-07-10-strategy-depth-plan.md",
-    "docs/specs/2026-07-10-strategy-depth.md",
     "docs/superpowers/plans/2026-07-10-mvp-implementation.md",
-    "docs/specs/2026-07-10-combat-balance.md",
     "README.md"
   ]
 }
